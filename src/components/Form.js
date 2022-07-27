@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-const Container = styled.div`
+const Container = styled.form`
   width: 30%;
   min-width: 35rem;
   padding: 1rem 0.5rem;

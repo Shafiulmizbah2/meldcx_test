@@ -1,5 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import styled, { css } from "styled-components";
+import AxiosInstance from "../AxiosInstance";
+import useAuth from "../hooks/useAuth";
+import theme from "../theme";
 
 const Container = styled.div`
   height: 100vh;
@@ -11,10 +14,19 @@ const Container = styled.div`
   color: ${(props) => props.theme.white};
 `;
 
-const CenterText = styled.div``;
-const Circle = styled.div`
-  //   z-index: 1000;
+const CenterDiv = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 `;
+
+const Text = styled.div`
+  font-size: 1.5rem;
+  font-weight: 500;
+  text-transform: uppercase;
+`;
+const Circle = styled.div``;
 
 const OrbitContainer = styled.div`
   display: flex;
@@ -72,15 +84,98 @@ const Orbit = styled.div`
     
 `;
 
+const Bottom = styled.div`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2.5rem;
+  background-color: ${(props) => props.theme.primaryLight};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const Button = styled.button`
+  padding: 1rem 2rem;
+  background: ${(props) => (props.bgColor ? props.bgColor : "gray")};
+  outline: none;
+  border: none;
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: ${(props) => (props.color ? props.color : "black")};
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-right: 1rem;
+`;
+
 const DeviceScreen = () => {
+  const [devices, setDevices] = useState([]);
+  const { user, logOut } = useAuth();
+
+  const getDevices = async () => {
+    const resp = await AxiosInstance.get("/devices");
+    setDevices(resp.data.devices);
+  };
+
+  const notify = async () => {
+    const data = {
+      name: "Shafiul Azim",
+      email: "shafiulmizbah2@gmail.com",
+      repoUrl: "https://github.com/Shafiulmizbah2/meldcx_test",
+      message: "Hope you would be happy with my solution.",
+    };
+
+    await AxiosInstance.post("/notify", data);
+  };
+
+  useEffect(() => {
+    getDevices();
+    const timer = setInterval(() => {
+      getDevices();
+    }, 5000);
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
+  if (devices.length === 0) {
+    return (
+      <Container>
+        <CenterDiv>
+          <Text>Please wait...</Text>
+        </CenterDiv>
+      </Container>
+    );
+  }
+
   return (
     <Container>
       <OrbitContainer>
-        <Orbit radius={200} numOfElement={1} circleSize={20}>
-          <Circle />
+        <Orbit radius={200} numOfElement={devices.length} circleSize={20}>
+          {devices.map((item) => (
+            <Circle key={item.id} />
+          ))}
         </Orbit>
-        <CenterText>1 device</CenterText>
+        <CenterDiv>
+          <Text style={{ fontSize: "3rem", fontWeight: 300 }}>
+            {devices.length}
+          </Text>
+          <Text>Device</Text>
+          <Text>Online</Text>
+        </CenterDiv>
       </OrbitContainer>
+
+      <Bottom>
+        <Button color={theme.secondary} bgColor={theme.white} onClick={notify}>
+          Notify
+        </Button>
+        <Button color={theme.white} bgColor={theme.secondary} onClick={logOut}>
+          Log out
+        </Button>
+      </Bottom>
     </Container>
   );
 };
